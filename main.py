@@ -2,8 +2,8 @@ from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from database import engine, get_db, Base
-from models import Produto
-from schemas import ProdutoCreate, ProdutoUpdate, ProdutoResponse
+from models import Categoria, Produto
+from schemas import ProdutoCreate, ProdutoUpdate, ProdutoResponse, CategoriaCreate, CategoriaResponse
 from datetime import datetime
 from typing import List
 
@@ -67,7 +67,7 @@ def criar_produto(produto: ProdutoCreate, db: Session = Depends(get_db)):
         titulo=produto.titulo,
         descricao=produto.descricao,
         preco=produto.preco,
-        categoria=produto.categoria,
+        categoria_id=produto.categoria_id,
         vendedor=produto.vendedor
     )
     db.add(novo_produto)
@@ -119,6 +119,25 @@ def deletar_produto(produto_id: int, db: Session = Depends(get_db)):
     db.delete(produto)
     db.commit()
     return {"message": "Produto removido com sucesso", "id": produto_id}
+
+
+@app.get("/categorias", response_model=List[CategoriaResponse])
+def listar_categorias(db: Session = Depends(get_db)):
+    """Endpoint para listar categorias"""
+    return db.query(Categoria).all()
+
+
+@app.post("/categorias", response_model=CategoriaResponse, status_code=201)
+def criar_categoria(categoria: CategoriaCreate, db: Session = Depends(get_db)):
+    """Endpoint para criar categoria"""
+    nova_categoria = Categoria(
+        nome=categoria.nome,
+        descricao=categoria.descricao
+    )
+    db.add(nova_categoria)
+    db.commit()
+    db.refresh(nova_categoria)
+    return nova_categoria
 
 
 # --- Ponto de entrada ---
