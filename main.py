@@ -139,6 +139,18 @@ def criar_categoria(categoria: CategoriaCreate, db: Session = Depends(get_db)):
     db.refresh(nova_categoria)
     return nova_categoria
 
+@app.delete("/categorias/{categoria_id}")
+def deletar_categoria(categoria_id: int, db: Session = Depends(get_db)):
+    """Remove um produto do banco."""
+    categoria = db.query(Categoria).filter(Categoria.id == categoria_id).first()
+    if not categoria:
+        raise HTTPException(status_code=404, detail="Categoria não encontrada")
+
+    db.delete(categoria)
+    db.commit()
+    return {"message": "Categoria removida com sucesso", "id": categoria_id}
+
+
 
 # --- Ponto de entrada ---
 if __name__ == "__main__":
